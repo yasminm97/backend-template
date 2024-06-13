@@ -1,0 +1,5 @@
+{:tasks
+ {test (do
+         (shell "java --version")
+         (shell "clj --version")
+         (shell "bb --version"))}}
