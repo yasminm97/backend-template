@@ -47,7 +47,7 @@
 
 4. Create the application
    ``` shell
-   clojure -Tnew app :name com.iraqidata.com/training
+   clojure -Tnew app :name com.iraqidata/training
    ```
 
 5. Remove some files
