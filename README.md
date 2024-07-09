@@ -35,31 +35,31 @@
 
 # Setup a development environment
 
-1. **Make sure you are in the development environment**
+We'll use the [deps-new](https://github.com/seancorfield/deps-new) tool to
+create projects.
 
-2. We'll use the [deps-new](https://github.com/seancorfield/deps-new) tool
-   to create projects.
+**Make sure you are in the development environment**
 
-3. Install with
+1. Install with
    ``` shell
    clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new
    ```
 
-4. Create the application
+2. Create the application
    ``` shell
    clojure -Tnew app :name com.iraqidata/training
    ```
 
-5. Remove some files
+3. Remove some files
    ``` shell
    rm training/README.md training/LICENSE
    ```
 
-6. Move things to our root directory
+4. Move things to our root directory
    ``` shell
    mv training/* training/.gitignore .
    ```
-7. Update `.gitignore`
+5. Update `.gitignore`
    ```shell
     echo ".direnv/" >> .gitignore
    ```
