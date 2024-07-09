@@ -59,3 +59,7 @@
    ``` shell
    mv training/* training/.gitignore .
    ```
+7. Update `.gitignore`
+   ```shell
+    echo ".direnv/" >> .gitignore
+   ```
