@@ -32,3 +32,27 @@
    Clojure CLI version 1.11.3.1463
    babashka v1.3.190
    ```
+
+# Setup a development environment
+
+- **Make sure you are in the development environment**
+- We'll use the [deps-new](https://github.com/seancorfield/deps-new) tool to
+  create projects.
+- Install with
+  ``` shell
+  clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new
+  ```
+- Create the application
+  ``` shell
+  clojure -Tnew app :name com.iraqidata.com/training
+  ```
+
+- Remove some files
+  ``` shell
+  rm training/README.md training/LICENSE
+  ```
+
+- Move things to our root directory
+  ``` shell
+  mv training/* .
+  ```
