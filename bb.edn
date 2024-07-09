@@ -6,6 +6,10 @@
   setup (do
           (shell "clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new")
           (shell "clojure -Tnew app :name com.iraqidata/training")
-          (shell "rm training/README.md training/LICENSE")
-          (shell "mv training/* training/.gitignore .")
-          (shell "echo \".direnv/\" >> .gitignore"))}}
+          (shell "rm ./training/README.md ./training/LICENSE")
+          (shell "mv ./training/.gitignore .")
+          (shell "bash -c" "mv ./training/* .")
+          (shell "bash -c" "echo \".direnv/\" >> .gitignore")
+          (shell "bash -c" "echo \".cpcache/\" >> .gitignore")
+          (shell "rm -rf ./training")
+          (println "You are ready!"))}}
