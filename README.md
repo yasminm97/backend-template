@@ -36,21 +36,24 @@
 # Setup a development environment
 
 1. **Make sure you are in the development environment**
+
 2. We'll use the [deps-new](https://github.com/seancorfield/deps-new) tool
    to create projects.
+
 3. Install with
-  ``` shell
-  clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new
-  ```
+   ``` shell
+   clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new
+   ```
+
 4. Create the application
-  ``` shell
-  clojure -Tnew app :name com.iraqidata.com/training
-  ```
+   ``` shell
+   clojure -Tnew app :name com.iraqidata.com/training
+   ```
 
 5. Remove some files
-  ``` shell
-  rm training/README.md training/LICENSE
-  ```
+   ``` shell
+   rm training/README.md training/LICENSE
+   ```
 
 6. Move things to our root directory
   ``` shell
