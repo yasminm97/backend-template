@@ -2,4 +2,10 @@
  {test (do
          (shell "java --version")
          (shell "clj --version")
-         (shell "bb --version"))}}
+         (shell "bb --version"))
+  setup (do
+          (shell "clojure -Ttools install-latest :lib io.github.seancorfield/deps-new :as new")
+          (shell "clojure -Tnew app :name com.iraqidata/training")
+          (shell "rm training/README.md training/LICENSE")
+          (shell "mv training/* training/.gitignore .")
+          (shell "echo \".direnv/\" >> .gitignore"))}}
