@@ -56,6 +56,6 @@
    ```
 
 6. Move things to our root directory
-  ``` shell
-  mv training/* training/.gitignore .
-  ```
+   ``` shell
+   mv training/* training/.gitignore .
+   ```
