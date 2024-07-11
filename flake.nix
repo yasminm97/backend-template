@@ -33,6 +33,15 @@
               babashka
             ];
             LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
+            shellHook = ''
+            printf "Welcome to the iData Backend Template!\n\n"
+
+            printf "Running version test...\n"
+            bb test
+            printf "\n"
+
+            printf "Run 'bb setup' to complete the setup or bootstrap your own project.\n"
+            '';
           };
         });
       };
