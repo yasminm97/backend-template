@@ -40,7 +40,7 @@
             bb test
             printf "\n"
 
-            printf "Run 'bb setup' to complete the setup or bootstrap your own project.\n"
+            printf "If you don't have a project setup; run 'bb setup' to complete the setup or bootstrap your own project.\nOtherwise, enjoy developing!\n"
             '';
           };
         });
