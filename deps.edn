@@ -1,7 +1,8 @@
 {:paths ["src" "resources"]
- :deps {org.clojure/clojure    {:mvn/version "1.11.3"}
-        scicloj/tablecloth     {:mvn/version "7.029.2"}
-        org.scicloj/clay       {:mvn/version "2-beta10"}}
+ :deps {org.clojure/clojure {:mvn/version "1.11.3"}
+        scicloj/tablecloth {:mvn/version "7.029.2"}
+        org.scicloj/clay {:mvn/version "2-beta10"}
+        org.scicloj/kindly {:mvn/version "4-alpha17"}}
  :aliases
  {:run-m {:main-opts ["-m" "com.iraqidata.training"]}
   :run-x {:ns-default com.iraqidata.training
