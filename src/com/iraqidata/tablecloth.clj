@@ -1,6 +1,9 @@
 (ns com.iraqidata.tablecloth
-  (:require [tablecloth.api :as tc]
-            [scicloj.kindly.v4.kind :as kind]))
+  (:require
+   [scicloj.kindly.v4.kind :as kind]
+   [tablecloth.api :as tc]
+   tablecloth.column.api.operators
+   [tablecloth.column.api.operators :as operators]))
 
 ;; Loading data from a CSV file
 (tc/dataset "./resources/data/flights.csv")
@@ -38,11 +41,92 @@
 ;; ## Re-order things around
 
 ;; R Code
-(kind/code "flights |>
-  arrange(desc(dep_delay))")
+
+(kind/md "```r
+flights |>
+  arrange(desc(dep_delay))
+```")
 
 ;; Clojure Code
 
 (-> ds
-    (tc/reorder-columns [:year :month :day :dep_time])
     (tc/order-by :dep_delay))
+
+;; ## Uniqueness
+
+;; R Code
+
+;; Removes duplicate rows.
+
+(kind/md "```r
+flights |>
+  distinct()
+```")
+
+;; Clojure Code
+
+;; Requires at least one column to be specified.  Keeps all other columns by default unlike R.
+
+(-> ds
+    (tc/unique-by :origin))
+
+;; In R, you would use something like this
+(kind/md "```r
+flights |>
+  count(origin, dest, sort = TRUE)
+```")
+
+;; To count rows and sort at the same time, this kind of **complex** code does
+;; not occur in Clojure.
+
+(-> ds
+    (tc/group-by [:origin :dest])
+    (tc/aggregate {:n tc/row-count})
+    (tc/order-by :n :desc))
+
+;; Notice how each function does one thing at a time, the grouping is ommited in
+;; the R example and so is the naming of the new column.
+
+;; You do not tack on arguments or hope that they exist for every single
+;; function, you **simply** thread through another function.
+
+;; ## Column Operations
+
+;; ### Creating new columns
+
+(kind/md "```r
+flights |>
+  mutate(
+    gain = dep_delay - arr_delay,
+    speed = distance / air_time * 60
+  )
+```")
+
+(-> ds
+    (tc/add-column :gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay])))
+    (tc/add-column :speed (:speed (tc// ds :speed [:distance :air_time])))
+
+    (tc/head)
+    (kind/table))
+
+(-> ds
+    (tc/add-columns {:gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay]))
+                     :speed (:speed (tc// ds :speed [:distance :air_time]))})
+    (tc/update-columns :speed
+                       (fn [column]
+                         (operators/* column
+                                      60)))
+    (tc/head)
+    (kind/table))
+
+;; ### Selecting columns
+
+;; ### Renaming columns
+
+;; ### Moving columns around
+
+;; # Threading vs Piping
+
+;; ## Peek: Transducers
+
+;; Do you ever think, hey why are we creating all those intermediate results?
