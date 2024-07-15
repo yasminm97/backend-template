@@ -1,5 +1,6 @@
 (ns com.iraqidata.tablecloth
   (:require
+   [clojure.string :as str]
    [scicloj.kindly.v4.kind :as kind]
    [tablecloth.api :as tc]
    tablecloth.column.api.operators
@@ -104,10 +105,7 @@ flights |>
 
 (-> ds
     (tc/add-column :gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay])))
-    (tc/add-column :speed (:speed (tc// ds :speed [:distance :air_time])))
-
-    (tc/head)
-    (kind/table))
+    (tc/add-column :speed (:speed (tc// ds :speed [:distance :air_time]))))
 
 (-> ds
     (tc/add-columns {:gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay]))
@@ -115,17 +113,123 @@ flights |>
     (tc/update-columns :speed
                        (fn [column]
                          (operators/* column
-                                      60)))
-    (tc/head)
-    (kind/table))
+                                      60))))
 
 ;; ### Selecting columns
 
+(kind/md "```r
+flights |>
+  select(year, month, day)
+
+flights |>
+  select(year:day)
+```")
+
+;; Clojure Code
+
+(-> ds
+    (tc/select-columns [:year :month :day]))
+
+;; Instead of negating a selecting, thus complicating the operation, we simply drop columns
+
+(-> ds
+    (tc/drop-columns [:year :month :day]))
+
+;; **There is no notion of ranges in column selection by default.**
+
+;; What if you really, **really** wanted a range selector for columns?
+
+;; It's trivial to write such helper functions in Clojure due to its amazing
+;; data structures.
+
+(defn select-range-columns
+  [ds start end]
+  (tc/select-columns ds
+                     (subvec (into [] (tc/column-names ds))
+                             (.indexOf (tc/column-names ds)
+                                       start)
+                             (inc (.indexOf (tc/column-names ds)
+                                            end)))))
+
+(-> ds
+    (select-range-columns :year :day))
+
+;; ### Selecting based on type
+
+;; R
+
+(kind/md "```r
+flights |>
+  select(where(is.character))
+```")
+
+;; We can select based on the type directly.
+
+(-> ds
+    (tc/select-columns :type/numerical))
+
+(-> ds
+    (tc/select-columns :type/string))
+
 ;; ### Renaming columns
+
+(kind/md "```r
+flights |>
+  rename(tail_num = tailnum)
+```")
+
+(-> ds
+    (tc/rename-columns {:tail_num :tailnum}))
 
 ;; ### Moving columns around
 
-;; # Threading vs Piping
+(kind/md "```r
+flights |>
+  relocate(time_hour, air_time)
+```")
+
+(-> ds
+    (tc/reorder-columns [:time_hour :air_time]))
+
+;; There is no equivelant to the `.after` and `.before` argument.
+
+(kind/md "```r
+flights |>
+  relocate(year:dep_time, .after = time_hour)
+
+flights |>
+  relocate(starts_with(\"arr\"), .before = dep_time)
+```")
+
+;; Apply filtering using functions.
+
+(-> ds
+    (tc/reorder-columns (fn [column]
+                          (str/starts-with? (name column)
+                                            "arr"))))
+
+;; # Threading, Piping
+
+;; ## Threading in Clojure
+
+;; Clojure supports an operation similar to piping in R, it's called threading
+;; with multiple variations.
+
+;; ### Thread-first
+
+;; The most common threading macro and the match to R's `|>` pipe operator.  It
+;; places the first argument as the first argument of every subsequent function
+;; call.
+
+(-> 4
+    (+ 3)
+    (/ 4.0))
+
+(/ (+ 4 3) 4.0)
+
+;; ### Thread-last
+
+;; ### Thread-as
 
 ;; ## Peek: Transducers
 
