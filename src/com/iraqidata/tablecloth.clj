@@ -3,8 +3,8 @@
    [clojure.string :as str]
    [scicloj.kindly.v4.kind :as kind]
    [tablecloth.api :as tc]
-   tablecloth.column.api.operators
-   [tablecloth.column.api.operators :as operators]))
+   [tablecloth.column.api.operators :as operators]
+   tech.v3.datatype.casting))
 
 ;; Loading data from a CSV file
 (tc/dataset "./resources/data/flights.csv")
@@ -171,6 +171,11 @@ flights |>
 (-> ds
     (tc/select-columns :type/string))
 
+;; What are the possible types?
+
+(kind/table
+ {:type (tech.v3.datatype.casting/all-datatypes)})
+
 ;; ### Renaming columns
 
 (kind/md "```r
@@ -191,7 +196,7 @@ flights |>
 (-> ds
     (tc/reorder-columns [:time_hour :air_time]))
 
-;; There is no equivelant to the `.after` and `.before` argument.
+;; There is no equivalent to the `.after` and `.before` argument.
 
 (kind/md "```r
 flights |>
@@ -227,10 +232,207 @@ flights |>
 
 (/ (+ 4 3) 4.0)
 
+(-> {:name "Ali"}
+    (assoc :age 30)
+    (update :age inc))
+
 ;; ### Thread-last
 
+;; Let's consider the case of the following problem, the sum of the squares of
+;; all even positive integers below ten.
+
+;; Your first instinct might be
+(reduce +
+        (map #(* % %)
+             (filter even?
+                     (range 10))))
+
+;; Which is correct but it's not as readable as the following
+
+(->> (range 10)
+     (filter even?)
+     (map #(* % %))
+     (reduce +))
+
+;; You can even make it more readable by adding commas to indicate where the
+;; argument goes.
+
+(->> (range 10)
+     (filter even? ,,,)
+     (map #(* % %) ,,,)
+     (reduce +) ,,,)
+
+;; #### Simple and Complex again
+
+;; In R this form would look like this
+
+(kind/md "```r
+sum((seq(2, 8, by = 2))^2)
+```")
+
+;; Which might look easier to write but is far more complex, what if you want to
+;; extend it by multiplying each number by 3.5?  Such operations are far simpler
+;; to implement in Clojure because they mostly involve adding another function
+;; call to the thread.
+
+(->> (range 10)
+     (filter even?)
+     (map #(* % 3.5))
+     (map #(* % %))
+     (reduce +))
+
+;; Equivalent R code, with decreasing readability and increasing complexity.
+
+(kind/md "```r
+sum((seq(2, 8, by = 2) * 3.5)^2)
+```")
+
 ;; ### Thread-as
+
+;; Thread-as `as->` gives you complete freedom in where you place the arguments in the pipeline!
+
+(as-> [:foo :bar] v
+  (map name v)
+  (first v)
+  (.substring v 1))
+
+;; No equivalent in R.
 
 ;; ## Peek: Transducers
 
 ;; Do you ever think, hey why are we creating all those intermediate results?
+
+;; We can use a concept in Clojure
+;; called [Transducers](https://clojure.org/reference/transducers) which simply
+;; means applying all the functions at once without intermediate results!
+
+(transduce
+ ;; Collection of functions, documented as `xf`
+ (comp (filter even?)
+       (map #(* % 3.5))
+       (map #(* % %)))
+ ;; Function to reduce by.
+ +
+ ;; Collection to work over.
+ (range 10000))
+
+;; Time Comparison
+^:kindly/hide-code
+(kind/table
+ (tc/dataset {"Case"                  ["Transducers" "Threading" "Difference "]
+              "Average time in ms"    (map #(format "%.5f" %)
+                                           [0.47711006 0.5792014 (- 0.5792014 0.47711006)])}))
+
+;; Around 10 msecs in the transducer case, which is a difference of %17.
+
+
+;; # Grouping
+
+;; ## `group-by`
+
+;; The way grouping happens works differently between R and Clojure so I'll only
+;; discuss Clojure's method here but provide mirror uses cases.
+
+(-> ds
+    (tc/group-by :month))
+
+;; We see this produces smaller datasets that are the groups.
+
+;; We can summarize such groups.
+
+(-> ds
+    (tc/group-by :month)
+    (tc/mean :dep_delay)
+    (tc/rename-columns [:month :mean])
+    (tc/order-by :month))
+
+;; Another method
+
+(-> ds
+    (tc/group-by :month)
+    (tc/aggregate {:mean (fn [ds]
+                           (get (tc/mean ds :dep_delay)
+                                "summary"))})
+    (tc/rename-columns [:month :mean])
+    (tc/order-by :month))
+
+;; Notice that we ignore missing values, similar code in R would break unless
+;; you use `na.rm = TRUE`
+
+
+;; ## Extract specific rows within each group
+
+;; There is no direct counterpart to the `slice_` functions in R, that's fine we
+;; can reach their functionality with a one or a few basic functions.
+
+;; `slice_head()`
+
+;; Takes the first row of each group.
+
+;; You can use `(tc/select-rows ds 0)`.
+
+(-> ds
+    (tc/group-by :month)
+    (tc/select-rows 0)
+    (tc/ungroup))
+
+;; `slice_max()`
+
+;; takes the row with the largest value of column `x`.
+
+(-> ds
+    (tc/group-by :dest)
+    (tc/order-by :arr_delay :desc)
+    (tc/select-rows 0)
+    (tc/ungroup))
+
+(defn slice-max
+  "Select the row with the largest value of `column-kw`."
+  [ds column-kw]
+  (-> ds
+      (tc/order-by column-kw :desc)
+      (tc/select-rows 0)
+      (tc/ungroup)))
+(-> ds
+    (tc/group-by :dest)
+    (slice-max :arr_delay))
+
+;; It's helpful to test our code.
+
+(= (-> ds
+       (tc/group-by :dest)
+       (tc/order-by :arr_delay :desc)
+       (tc/select-rows 0)
+       (tc/ungroup))
+   (-> ds
+       (tc/group-by :dest)
+       (slice-max :arr_delay)))
+
+;; Lastly, this is a naive quick implementation that assumes a grouped
+;; collection, there are ways to dispatch for various cases but that's outside
+;; the scope at the moment.
+
+;; `slice_sample`
+
+;; For selecting any random row.
+
+(-> ds
+    (tc/select-rows (-> ds
+                        tc/row-count
+                        rand-int)))
+
+;; Per group requires a bit more code as we work through each group, one at a
+;; time.
+
+(as-> ds ds
+  (tc/group-by ds :dest)
+  (tc/order-by ds :arr_delay :desc)
+  (tc/groups->seq ds)
+  (map (fn [group]
+         (tc/select-rows group
+                         (-> group
+                             tc/row-count
+                             rand-int)))
+       ds))
+
+;; Selecting from a group
