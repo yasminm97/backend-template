@@ -1,15 +1,17 @@
 (ns com.iraqidata.tablecloth
   (:require
+   [tablecloth.api :as tc]
    [clojure.string :as str]
    [scicloj.kindly.v4.kind :as kind]
-   [tablecloth.api :as tc]
    [tablecloth.column.api.operators :as operators]
    tech.v3.datatype.casting))
+
+;; # Loading & Inspecting Data
 
 ;; Loading data from a CSV file
 (tc/dataset "./resources/data/flights.csv")
 
-;; Bind to a var
+;; Let's bind the data
 (def ds (tc/dataset "./resources/data/flights.csv"
                     {:key-fn keyword}))
 
@@ -19,10 +21,18 @@
 ;; Column names
 (tc/column-names ds)
 
-;; This is the R Code
+;; # Row Operations
+
+;; ## Selecting Rows
+
+;; R Code
+
+;; Let's select all the rows where the destination is IAH then group by the
+;; year, month and day and calculate the average arrival delay.
 
 ^:kindly/hide-code
-(kind/code "flights |>
+(kind/md "```r
+flights |>
   filter(dest == 'IAH') |>
   group_by(year, month, day) |>
   summarize(
@@ -30,7 +40,7 @@
   )
 ")
 
-;; This is the Clojure code
+;; This is the equivalent Clojure code
 
 (-> ds
     (tc/select-rows (fn [row]
@@ -39,10 +49,11 @@
     (tc/group-by [:year :month :day])
     (tc/mean :arr_delay))
 
-;; ## Re-order things around
+;; ## Sort rows by column
 
 ;; R Code
 
+^:kindly/hide-code
 (kind/md "```r
 flights |>
   arrange(desc(dep_delay))
@@ -53,11 +64,9 @@ flights |>
 (-> ds
     (tc/order-by :dep_delay))
 
-;; ## Uniqueness
+;; ## Unique Rows
 
 ;; R Code
-
-;; Removes duplicate rows.
 
 (kind/md "```r
 flights |>
@@ -71,7 +80,11 @@ flights |>
 (-> ds
     (tc/unique-by :origin))
 
-;; In R, you would use something like this
+;; ## Counting Rows
+
+;; Let's count the rows for the origin, destination pairs.
+
+^:kindly/hide-code
 (kind/md "```r
 flights |>
   count(origin, dest, sort = TRUE)
@@ -99,21 +112,11 @@ flights |>
 flights |>
   mutate(
     gain = dep_delay - arr_delay,
-    speed = distance / air_time * 60
   )
 ```")
 
 (-> ds
-    (tc/add-column :gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay])))
-    (tc/add-column :speed (:speed (tc// ds :speed [:distance :air_time]))))
-
-(-> ds
-    (tc/add-columns {:gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay]))
-                     :speed (:speed (tc// ds :speed [:distance :air_time]))})
-    (tc/update-columns :speed
-                       (fn [column]
-                         (operators/* column
-                                      60))))
+    (tc/add-column :gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay]))))
 
 ;; ### Selecting columns
 
@@ -178,6 +181,8 @@ flights |>
 
 ;; ### Renaming columns
 
+;; Simple mapping from old name to new name.
+
 (kind/md "```r
 flights |>
   rename(tail_num = tailnum)
@@ -208,10 +213,21 @@ flights |>
 
 ;; Apply filtering using functions.
 
+;; Relocation based on a condition is simple.
+
+^:kindly/hide-code
+(kind/md "```r
+flights |>
+  relocate(starts_with(\"arr\"))
+```")
+
 (-> ds
     (tc/reorder-columns (fn [column]
                           (str/starts-with? (name column)
                                             "arr"))))
+
+;; We use `(name column)` because a column contains data and we only want to
+;; filter by the name.
 
 ;; # Threading, Piping
 
@@ -223,12 +239,17 @@ flights |>
 ;; ### Thread-first
 
 ;; The most common threading macro and the match to R's `|>` pipe operator.  It
-;; places the first argument as the first argument of every subsequent function
-;; call.
+;; places its argument as the first argument of every subsequent function call.
 
 (-> 4
     (+ 3)
     (/ 4.0))
+
+;; One way to visualize this
+
+(-> 4
+    (+ ,,, 3)
+    (/ ,,, 4.0))
 
 (/ (+ 4 3) 4.0)
 
@@ -360,7 +381,8 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 ;; you use `na.rm = TRUE`
 
 
-;; ## Extract specific rows within each group
+
+;; ## Selecting from a group
 
 ;; There is no direct counterpart to the `slice_` functions in R, that's fine we
 ;; can reach their functionality with a one or a few basic functions.
@@ -434,5 +456,3 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
                              tc/row-count
                              rand-int)))
        ds))
-
-;; Selecting from a group
