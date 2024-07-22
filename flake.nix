@@ -31,6 +31,7 @@
               clojure-lsp
               clojure
               babashka
+              nodejs_22
             ];
             LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
             shellHook = ''
