@@ -6,6 +6,12 @@
    [tablecloth.column.api.operators :as operators]
    tech.v3.datatype.casting))
 
+(comment
+  (scicloj.clay.v2.api/make! {:source-path "src/com/iraqidata/tablecloth.clj"
+                              :format [:quarto :html]
+                              :run-quarto false
+                              :show false}))
+
 ;; # Loading & Inspecting Data
 
 ;; Loading data from a CSV file
