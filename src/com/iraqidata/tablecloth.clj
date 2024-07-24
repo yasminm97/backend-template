@@ -19,7 +19,7 @@
 
 ;; Let's bind the data
 (def ds (tc/dataset "./resources/data/flights.csv"
-                    {:key-fn keyword}))
+                    {:key-fn #(keyword (str/replace (name %) "_" "-"))}))
 
 ;; Information about the dataset
 (tc/info ds)
@@ -53,7 +53,7 @@ flights |>
                       (= (:dest row)
                          "IAH")))
     (tc/group-by [:year :month :day])
-    (tc/mean :arr_delay))
+    (tc/mean :arr-delay)
 
 ;; ## Sort rows by column
 
@@ -68,7 +68,7 @@ flights |>
 ;; Clojure Code
 
 (-> ds
-    (tc/order-by :dep_delay))
+    (tc/order-by :dep-delay))
 
 ;; ## Unique Rows
 
@@ -122,7 +122,7 @@ flights |>
 ```")
 
 (-> ds
-    (tc/add-column :gain (:gain (tc/+ ds :gain [:dep_delay :arr_delay]))))
+                             (tc/+ :gain [:dep-delay :arr-delay])
 
 ;; ### Selecting columns
 
@@ -195,7 +195,7 @@ flights |>
 ```")
 
 (-> ds
-    (tc/rename-columns {:tail_num :tailnum}))
+    (tc/rename-columns {:tail-num :tailnum}))
 
 ;; ### Moving columns around
 
@@ -205,7 +205,7 @@ flights |>
 ```")
 
 (-> ds
-    (tc/reorder-columns [:time_hour :air_time]))
+    (tc/reorder-columns [:time-hour :air-time]))
 
 ;; There is no equivalent to the `.after` and `.before` argument.
 
@@ -369,7 +369,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 
 (-> ds
     (tc/group-by :month)
-    (tc/mean :dep_delay)
+    (tc/mean :dep-delay)
     (tc/rename-columns [:month :mean])
     (tc/order-by :month))
 
@@ -423,18 +423,18 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
       (tc/ungroup)))
 (-> ds
     (tc/group-by :dest)
-    (slice-max :arr_delay))
+    (slice-max :arr-delay))
 
 ;; It's helpful to test our code.
 
 (= (-> ds
        (tc/group-by :dest)
-       (tc/order-by :arr_delay :desc)
+       (tc/order-by :arr-delay :desc)
        (tc/select-rows 0)
        (tc/ungroup))
    (-> ds
        (tc/group-by :dest)
-       (slice-max :arr_delay)))
+       (slice-max :arr-delay)))
 
 ;; Lastly, this is a naive quick implementation that assumes a grouped
 ;; collection, there are ways to dispatch for various cases but that's outside
@@ -444,10 +444,12 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 
 ;; For selecting any random row.
 
-(-> ds
-    (tc/select-rows (-> ds
-                        tc/row-count
-                        rand-int)))
+
+(kind/code
+ "(-> ds
+      (tc/select-rows (-> ds
+                          tc/row-count
+                          rand-int)))")
 
 ;; Per group requires a bit more code as we work through each group, one at a
 ;; time.
