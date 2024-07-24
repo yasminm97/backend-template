@@ -1,9 +1,9 @@
 (ns com.iraqidata.tablecloth
   (:require
-   [tablecloth.api :as tc]
    [clojure.string :as str]
+   scicloj.clay.v2.api
    [scicloj.kindly.v4.kind :as kind]
-   [tablecloth.column.api.operators :as operators]
+   [tablecloth.api :as tc]
    tech.v3.datatype.casting))
 
 (comment
@@ -308,6 +308,8 @@ flights |>
 ;; The most common threading macro and the match to R's `|>` pipe operator.  It
 ;; places its argument as the first argument of every subsequent function call.
 
+(/ (+ 4 3) 4.0)
+
 (-> 4
     (+ 3)
     (/ 4.0))
@@ -317,8 +319,6 @@ flights |>
 (-> 4
     (+ ,,, 3)
     (/ ,,, 4.0))
-
-(/ (+ 4 3) 4.0)
 
 (-> {:name "Ali"}
     (assoc :age 30)
@@ -342,21 +342,17 @@ flights |>
      (map #(* % %))
      (reduce +))
 
-;; You can even make it more readable by adding commas to indicate where the
-;; argument goes.
-
-(->> (range 10)
-     (filter even? ,,,)
-     (map #(* % %) ,,,)
-     (reduce +) ,,,)
-
-;; #### Simple and Complex again
 
 ;; In R this form would look like this
 
-(kind/md "```r
+(kind/md "```{r}
 sum((seq(2, 8, by = 2))^2)
 ```")
+
+;; #### Simple and Complex again
+
+;; ::: {.grid}
+;; ::: {.g-col-6}
 
 ;; Which might look easier to write but is far more complex, what if you want to
 ;; extend it by multiplying each number by 3.5?  Such operations are far simpler
@@ -401,7 +397,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 ;; means applying all the functions at once without intermediate results!
 
 (transduce
- ;; Collection of functions, documented as `xf`
+ ;; Composition of functions
  (comp (filter even?)
        (map #(* % 3.5))
        (map #(* % %)))
@@ -445,7 +441,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 (-> ds
     (tc/group-by :month)
     (tc/aggregate {:mean (fn [ds]
-                           (get (tc/mean ds :dep_delay)
+                           (get (tc/mean ds :dep-delay)
                                 "summary"))})
     (tc/rename-columns [:month :mean])
     (tc/order-by :month))
@@ -477,7 +473,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 
 (-> ds
     (tc/group-by :dest)
-    (tc/order-by :arr_delay :desc)
+    (tc/order-by :arr-delay :desc)
     (tc/select-rows 0)
     (tc/ungroup))
 
@@ -521,7 +517,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 ;; Per group requires a bit more code as we work through each group, one at a
 ;; time.
 
-(as-> ds ds
+(kind/code "(as-> ds ds
   (tc/group-by ds :dest)
   (tc/order-by ds :arr_delay :desc)
   (tc/groups->seq ds)
