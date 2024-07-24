@@ -32,6 +32,11 @@
               clojure
               babashka
               nodejs_22
+
+              R
+              rPackages.nycflights13
+              rPackages.dplyr
+              rPackages.reticulate
             ];
             LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
             shellHook = ''
