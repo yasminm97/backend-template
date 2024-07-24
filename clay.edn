@@ -1,0 +1,10 @@
+{:kindly/options {:kinds-that-hide-code #{:kind/md
+                                          :kind/hiccup
+                                          :kind/code}
+                  :dataset/print-range 6}
+ :quarto {:format {:html {:theme [:cosmo "notebooks/custom.scss"]}}
+          :fontsize "1em"
+          :highlight-style :solarized
+          :code-block-background true
+          :include-in-header {:text "<link rel = \"icon\" href = \"data:,\" />"}
+          :title "iData Clojure Training"}}
