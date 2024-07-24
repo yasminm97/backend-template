@@ -1,8 +1,19 @@
 @import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
 
 /*-- scss:rules --*/
-.table {width:auto}
+.table {
+    width: auto;
+    max-width: 100%
+}
 
-code {font-family: 'Fira Code Medium', monospace;}
+.clay-dataset .table {
+    @extend .table-striped;
+    @extend .table-hover;
+    @extend .table-responsive;
+}
 
-.clay-image img {max-width: 100%}
+code {font-family: 'Fira Code Italic', monospace;}
+
+.clay-image img {
+    max-width: 100%
+}
