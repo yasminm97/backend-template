@@ -15,38 +15,88 @@
 ;; # Loading & Inspecting Data
 
 ;; Loading data from a CSV file
-(tc/dataset "./resources/data/flights.csv")
+(-> (tc/dataset "./resources/data/flights.csv")
+    tc/head
+    (kind/table {:element/max-height "300px"}))
 
 ;; Let's bind the data
 (def ds (tc/dataset "./resources/data/flights.csv"
                     {:key-fn #(keyword (str/replace (name %) "_" "-"))}))
 
 ;; Information about the dataset
-(tc/info ds)
+(-> (tc/info ds)
+    (kind/table {:element/max-height "300px"}))
 
 ;; Column names
 (tc/column-names ds)
 
+;; ## Loading in R
+
+(kind/md "```{r}
+library(dplyr)
+library(nycflights13)
+```
+")
+
 ;; # Row Operations
 
 ;; ## Selecting Rows
+
+;; ::: {.grid}
+;; ::: {.g-col-6}
+
+(kind/md "```{r}
+flights |>
+     filter(dest == 'IAH')
+```
+")
+
+;; :::
+;; ::: {.g-col-6}
+
+(-> ds
+    (tc/select-rows (fn [row]
+                      (= (:dest row)
+                         "IAH"))))
+
+;; :::
+;; :::
+
+;; Basic selection with a filter
+
+(kind/md "```{r}
+ flights |>
+      filter(dest == 'MIA')
+```")
+
+;; Clojure Code
+
+(-> ds
+    (tc/select-rows (fn [row]
+                      (= (:dest row)
+                         "IAH")))
+    #_(kind/table {:element/max-height "500px"}))
+
+(kind/md "```{r}
+library(dplyr)
+library(nycflights13)
+```")
 
 ;; R Code
 
 ;; Let's select all the rows where the destination is IAH then group by the
 ;; year, month and day and calculate the average arrival delay.
 
-^:kindly/hide-code
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   filter(dest == 'IAH') |>
   group_by(year, month, day) |>
   summarize(
     arr_delay = mean(arr_delay, na.rm = TRUE)
   )
-")
+```")
 
-;; This is the equivalent Clojure code
+;; In Clojure
 
 (-> ds
     (tc/select-rows (fn [row]
@@ -54,16 +104,20 @@ flights |>
                          "IAH")))
     (tc/group-by [:year :month :day])
     (tc/mean :arr-delay)
+    ;; Extra for prettiness
+    (tc/rename-columns {"summary" :mean-arr-delay}))
 
 ;; ## Sort rows by column
 
 ;; R Code
 
-^:kindly/hide-code
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   arrange(desc(dep_delay))
 ```")
+
+
+
 
 ;; Clojure Code
 
@@ -81,7 +135,8 @@ flights |>
 
 ;; Clojure Code
 
-;; Requires at least one column to be specified.  Keeps all other columns by default unlike R.
+;; Requires at least one column to be specified.  Keeps all other columns by
+;; default unlike R.
 
 (-> ds
     (tc/unique-by :origin))
@@ -90,8 +145,7 @@ flights |>
 
 ;; Let's count the rows for the origin, destination pairs.
 
-^:kindly/hide-code
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   count(origin, dest, sort = TRUE)
 ```")
@@ -104,7 +158,7 @@ flights |>
     (tc/aggregate {:n tc/row-count})
     (tc/order-by :n :desc))
 
-;; Notice how each function does one thing at a time, the grouping is ommited in
+;; Notice how each function does one thing at a time, the grouping is omitted in
 ;; the R example and so is the naming of the new column.
 
 ;; You do not tack on arguments or hope that they exist for every single
@@ -114,19 +168,26 @@ flights |>
 
 ;; ### Creating new columns
 
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   mutate(
     gain = dep_delay - arr_delay,
   )
 ```")
 
+(comment
+  (-> ds
+      (tc/+ :gain [:dep-delay :arr-delay])
+      :gain))
+
 (-> ds
+    (tc/add-column :gain (-> ds
                              (tc/+ :gain [:dep-delay :arr-delay])
+                             :gain)))
 
 ;; ### Selecting columns
 
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   select(year, month, day)
 
@@ -167,7 +228,7 @@ flights |>
 
 ;; R
 
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   select(where(is.character))
 ```")
@@ -189,7 +250,7 @@ flights |>
 
 ;; Simple mapping from old name to new name.
 
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   rename(tail_num = tailnum)
 ```")
@@ -199,7 +260,7 @@ flights |>
 
 ;; ### Moving columns around
 
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   relocate(time_hour, air_time)
 ```")
@@ -209,7 +270,7 @@ flights |>
 
 ;; There is no equivalent to the `.after` and `.before` argument.
 
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   relocate(year:dep_time, .after = time_hour)
 
@@ -222,7 +283,7 @@ flights |>
 ;; Relocation based on a condition is simple.
 
 ^:kindly/hide-code
-(kind/md "```r
+(kind/md "```{r}
 flights |>
   relocate(starts_with(\"arr\"))
 ```")
@@ -308,11 +369,17 @@ sum((seq(2, 8, by = 2))^2)
      (map #(* % %))
      (reduce +))
 
+;; :::
+;; ::: {.g-col-6}
+
 ;; Equivalent R code, with decreasing readability and increasing complexity.
 
-(kind/md "```r
+(kind/md "```{r}
 sum((seq(2, 8, by = 2) * 3.5)^2)
 ```")
+
+;; :::
+;; :::
 
 ;; ### Thread-as
 
