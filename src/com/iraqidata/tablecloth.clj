@@ -463,4 +463,57 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
                          (-> group
                              tc/row-count
                              rand-int)))
-       ds))
+       ds))")
+
+;; # Problem
+
+;; ## Average Delayed Flights
+
+;; Let's find the average delay for each airline.
+
+;; First, we need to load the airlines dataset.
+
+(def airlines
+  (tc/dataset "./resources/data/airlines.csv"
+              {:key-fn keyword}))
+
+(kind/table (tc/info airlines))
+
+;; Next we find the average delay for each airline.
+
+;; We join to get the airline names, then group by the name and find the average.
+
+(-> (tc/inner-join ds airlines [:carrier])
+    (tc/group-by :name)
+    (tc/mean :arr-delay)
+    (tc/rename-columns [:airlines :mean])
+    (tc/order-by :mean :desc)
+    ;; Clay specific
+    (kind/table {:element/max-height "300px"}))
+
+;; What if we want to visualize this data as a chart?
+
+;; Clay provides the notion of Kinds, which can be a kind of Highcharts, D3 and
+;; many other libraries.  An extensive list can be [found here](https://scicloj.github.io/clay/clay_book.examples.html)
+
+;; We can use the `highcharts` kind to visualize this data. The following code
+;; was guided by the [Highcharts bar chart
+;; example](https://www.highcharts.com/docs/chart-and-series-types/bar-chart).
+
+(let [ds (-> (tc/inner-join ds airlines [:carrier])
+             (tc/group-by :name)
+             (tc/mean :arr-delay)
+             (tc/rename-columns [:name :data])
+             (tc/order-by :data :desc))]
+  (kind/highcharts
+   {:chart {:type "bar"}
+    :title {:text "Airlines with the most delays"}
+    :xAxis {:categories (-> ds
+                            :name
+                            vec)}
+    :tooltip {:pointFormat "{series.name}: <b>{point.y:.1f}</b>"}
+    :yAxis {:title {:text "Average Delay"}}
+    :series [{:name "Average Delay"
+              :data (-> ds
+                        :data
+                        vec)}]}))
