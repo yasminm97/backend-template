@@ -206,7 +206,9 @@ df.groupby(['origin', 'dest']).size().sort_values(ascending=False)
 
 ;; # Column Operations
 
-;; ### Creating new columns
+;; ## Creating new columns
+
+;; ### R
 
 (kind/md "```{r}
 flights |>
@@ -214,6 +216,8 @@ flights |>
     gain = dep_delay - arr_delay,
   )
 ```")
+
+;; ### Clojure
 
 (comment
   (-> ds
@@ -225,7 +229,19 @@ flights |>
                              (tc/+ :gain [:dep-delay :arr-delay])
                              :gain)))
 
-;; ### Selecting columns
+;; ### Python
+
+;; TODO: Mutable
+
+(kind/md "```{python}
+df['gain'] = df['dep_delay'] - df['arr_delay']
+
+df
+```")
+
+;; ## Selecting columns
+
+;; ### R
 
 (kind/md "```{r}
 flights |>
@@ -235,12 +251,14 @@ flights |>
   select(year:day)
 ```")
 
-;; Clojure Code
+;; ### Clojure
 
 (-> ds
     (tc/select-columns [:year :month :day]))
 
 ;; Instead of negating a selecting, thus complicating the operation, we simply drop columns
+
+;; TODO: Move down? Separate section?
 
 (-> ds
     (tc/drop-columns [:year :month :day]))
@@ -251,6 +269,8 @@ flights |>
 
 ;; It's trivial to write such helper functions in Clojure due to its amazing
 ;; data structures.
+
+;; TODO: Explain step-by-step
 
 (defn select-range-columns
   [ds start end]
@@ -264,19 +284,34 @@ flights |>
 (-> ds
     (select-range-columns :year :day))
 
-;; ### Selecting based on type
+;; ### Python
 
-;; R
+(kind/md "```{python}
+df.loc[:, 'year':'day']
+```")
+
+;; ## Selecting based on type
+
+;; ### R
 
 (kind/md "```{r}
 flights |>
   select(where(is.character))
 ```")
 
+(kind/md "```{r}
+flights |>
+  select(where(is.numeric))
+```")
+
+;; ### Clojure
+
 ;; We can select based on the type directly.
 
 (-> ds
     (tc/select-columns :type/numerical))
+
+;; TODO: Report to Daniel.
 
 (-> ds
     (tc/select-columns :type/string))
@@ -286,7 +321,25 @@ flights |>
 (table
  {:type (tech.v3.datatype.casting/all-datatypes)})
 
-;; ### Renaming columns
+;; ### Python
+
+;; Select numbers only.
+
+(kind/md "```{python}
+df.select_dtypes(include=['number'])
+```")
+
+;; Select string only.
+
+;; `object` is `string` ?
+
+(kind/md "```{python}
+df.select_dtypes(include=['object'])
+```")
+
+;; ## Renaming columns
+
+;; ### R
 
 ;; Simple mapping from old name to new name.
 
@@ -295,18 +348,42 @@ flights |>
   rename(tail_num = tailnum)
 ```")
 
+;; ### Clojure
+
 (-> ds
     (tc/rename-columns {:tail-num :tailnum}))
 
-;; ### Moving columns around
+;; ### Python
+
+(kind/md "```{python}
+df.rename(columns={'tail_num': 'tailnum'}, inplace=True)
+
+df['tailnum']
+```
+")
+
+;; ## Moving columns around
+
+;; ### R
 
 (kind/md "```{r}
 flights |>
   relocate(time_hour, air_time)
 ```")
 
+;; ### Clojure
+
 (-> ds
     (tc/reorder-columns [:time-hour :air-time]))
+
+;; ### Python
+
+(kind/md "```{python}
+df = df[['time_hour', 'air_time'] + [col for col in df.columns if col not in ['time_hour', 'air_time']]]
+
+df
+```
+")
 
 ;; There is no equivalent to the `.after` and `.before` argument.
 
@@ -332,6 +409,16 @@ flights |>
     (tc/reorder-columns (fn [column]
                           (str/starts-with? (name column)
                                             "arr"))))
+
+;; ### Python
+
+;; Move to the start any column whose name begins with "arr"
+
+;; FIXME:
+
+(kind/md "```{python}
+df = df[col for col in df.columns if col.startswith('arr')]
+")
 
 ;; We use `(name column)` because a column contains data and we only want to
 ;; filter by the name.
