@@ -37,6 +37,9 @@
               rPackages.nycflights13
               rPackages.dplyr
               rPackages.reticulate
+
+              python311Full
+              python311Packages.pandas
             ];
             LOCALE_ARCHIVE = "${pkgs.glibcLocales}/lib/locale/locale-archive";
             shellHook = ''
