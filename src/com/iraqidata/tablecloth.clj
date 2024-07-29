@@ -12,12 +12,18 @@
                               :run-quarto false
                               :show false}))
 
+(defn table
+  "Custom table view."
+  [ds]
+  (kind/table ds
+              {:element/max-height "300px"}))
+
 ;; # Loading & Inspecting Data
 
 ;; Loading data from a CSV file
 (-> (tc/dataset "./resources/data/flights.csv")
     tc/head
-    (kind/table {:element/max-height "300px"}))
+    table)
 
 ;; Let's bind the data
 (def ds (tc/dataset "./resources/data/flights.csv"
@@ -25,7 +31,7 @@
 
 ;; Information about the dataset
 (-> (tc/info ds)
-    (kind/table {:element/max-height "300px"}))
+    table)
 
 ;; Column names
 (tc/column-names ds)
@@ -75,12 +81,8 @@ flights |>
     (tc/select-rows (fn [row]
                       (= (:dest row)
                          "IAH")))
-    #_(kind/table {:element/max-height "500px"}))
-
-(kind/md "```{r}
-library(dplyr)
-library(nycflights13)
-```")
+    (tc/select-rows (range 10))
+    table)
 
 ;; R Code
 
@@ -243,7 +245,7 @@ flights |>
 
 ;; What are the possible types?
 
-(kind/table
+(table
  {:type (tech.v3.datatype.casting/all-datatypes)})
 
 ;; ### Renaming columns
@@ -408,7 +410,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 
 ;; Time Comparison
 ^:kindly/hide-code
-(kind/table
+(table
  (tc/dataset {"Case"                  ["Transducers" "Threading" "Difference "]
               "Average time in ms"    (map #(format "%.5f" %)
                                            [0.47711006 0.5792014 (- 0.5792014 0.47711006)])}))
@@ -540,7 +542,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
   (tc/dataset "./resources/data/airlines.csv"
               {:key-fn keyword}))
 
-(kind/table (tc/info airlines))
+(table (tc/info airlines))
 
 ;; Next we find the average delay for each airline.
 
@@ -551,8 +553,7 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
     (tc/mean :arr-delay)
     (tc/rename-columns [:airlines :mean])
     (tc/order-by :mean :desc)
-    ;; Clay specific
-    (kind/table {:element/max-height "300px"}))
+    table)
 
 ;; What if we want to visualize this data as a chart?
 
