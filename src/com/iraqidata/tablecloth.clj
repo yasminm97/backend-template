@@ -36,7 +36,18 @@
 ;; Column names
 (tc/column-names ds)
 
-;; ## Loading in R
+;; ## Loading CSV in Python with Pandas
+
+(kind/md "```{python}
+import pandas as pd
+df = pd.read_csv(\"../resources/data/flights.csv\")
+df.head()
+```")
+
+
+;; ## Loading the library in R
+
+;; I opted to using the existing library for brevity.
 
 (kind/md "```{r}
 library(dplyr)
@@ -48,34 +59,22 @@ library(nycflights13)
 
 ;; ## Selecting Rows
 
-;; ::: {.grid}
-;; ::: {.g-col-6}
+;; Basic selection with a basic filter.
 
+;; ### R
 (kind/md "```{r}
 flights |>
      filter(dest == 'IAH')
 ```
 ")
 
-;; :::
-;; ::: {.g-col-6}
+;; ### Python
 
-(-> ds
-    (tc/select-rows (fn [row]
-                      (= (:dest row)
-                         "IAH"))))
-
-;; :::
-;; :::
-
-;; Basic selection with a filter
-
-(kind/md "```{r}
- flights |>
-      filter(dest == 'MIA')
+(kind/md "```{python}
+df[df['dest'] == 'IAH']
 ```")
 
-;; Clojure Code
+;; ### Clojure
 
 (-> ds
     (tc/select-rows (fn [row]
@@ -84,10 +83,12 @@ flights |>
     (tc/select-rows (range 10))
     table)
 
-;; R Code
+;; ## Summarizing Rows
 
 ;; Let's select all the rows where the destination is IAH then group by the
 ;; year, month and day and calculate the average arrival delay.
+
+;; ### R
 
 (kind/md "```{r}
 flights |>
@@ -98,7 +99,7 @@ flights |>
   )
 ```")
 
-;; In Clojure
+;; ### Clojure
 
 (-> ds
     (tc/select-rows (fn [row]
@@ -109,48 +110,85 @@ flights |>
     ;; Extra for prettiness
     (tc/rename-columns {"summary" :mean-arr-delay}))
 
+;; ### Python
+
+;; Group by year, month, day and calculate the mean arrival delay
+
+(kind/md "```{python}
+filtered_flights = df[df['dest'] == 'IAH']
+
+result = filtered_flights.groupby(['year', 'month', 'day']).agg({'arr_delay': lambda x: x.mean(skipna=True)}).reset_index()
+
+result
+```
+")
+
+;; TODO: Should we show just the head from all 3?
+
 ;; ## Sort rows by column
 
-;; R Code
+;; ### R
 
 (kind/md "```{r}
 flights |>
   arrange(desc(dep_delay))
 ```")
 
-
-
-
-;; Clojure Code
+;; ### Clojure
 
 (-> ds
-    (tc/order-by :dep-delay))
+    (tc/order-by :dep-delay :desc))
+
+;; ### Python
+
+(kind/md "```{python}
+df.sort_values(by='dep_delay', ascending=False)
+```")
 
 ;; ## Unique Rows
 
-;; R Code
+;; ### R
 
-(kind/md "```r
+;; R can do a distinct on all columns by default.  Clojure requires at least one
+;; column to be specified.  When one column in R is specified it does not keep
+;; all other column by default while Clojure does.
+
+(kind/md "```{r}
 flights |>
-  distinct()
+  distinct(c(origin), .keep_all = TRUE)
 ```")
 
-;; Clojure Code
-
-;; Requires at least one column to be specified.  Keeps all other columns by
-;; default unlike R.
+;; ### Clojure
 
 (-> ds
     (tc/unique-by :origin))
+
+;; ### Python
+
+;; unique by the origin column
+(kind/md "```{python}
+df.drop_duplicates(subset=['origin'])
+```")
 
 ;; ## Counting Rows
 
 ;; Let's count the rows for the origin, destination pairs.
 
+;; ### R
+
 (kind/md "```{r}
 flights |>
   count(origin, dest, sort = TRUE)
 ```")
+
+;; ### Python
+
+(kind/md "```{python}
+df.groupby(['origin', 'dest']).size().sort_values(ascending=False)
+```
+")
+
+;; ### Clojure
 
 ;; To count rows and sort at the same time, this kind of **complex** code does
 ;; not occur in Clojure.
@@ -166,7 +204,7 @@ flights |>
 ;; You do not tack on arguments or hope that they exist for every single
 ;; function, you **simply** thread through another function.
 
-;; ## Column Operations
+;; # Column Operations
 
 ;; ### Creating new columns
 
@@ -340,9 +378,15 @@ flights |>
 ;; Which is correct but it's not as readable as the following
 
 (->> (range 10)
+     (filter even? ,,,)
+     (map #(* % %) ,,,)
+     (reduce + ,,,))
+
+(->> (range 10)
      (filter even?)
      (map #(* % %))
      (reduce +))
+
 
 
 ;; In R this form would look like this
