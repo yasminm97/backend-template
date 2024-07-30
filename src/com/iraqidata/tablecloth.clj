@@ -374,7 +374,9 @@ flights |>
 ;; ### Clojure
 
 (-> ds
-    (tc/reorder-columns [:time-hour :air-time]))
+    (tc/reorder-columns [:time-hour :air-time])
+    tc/head
+    table)
 
 ;; ### Python
 
@@ -408,7 +410,9 @@ flights |>
 (-> ds
     (tc/reorder-columns (fn [column]
                           (str/starts-with? (name column)
-                                            "arr"))))
+                                            "arr")))
+    tc/head
+    table)
 
 ;; ### Python
 
