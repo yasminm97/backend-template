@@ -389,23 +389,23 @@ df
 
 ;; There is no equivalent to the `.after` and `.before` argument.
 
+;; ## Moving columns around based on a condition.
+
+;; ### R
+
 (kind/md "```{r}
 flights |>
-  relocate(year:dep_time, .after = time_hour)
-
-flights |>
-  relocate(starts_with(\"arr\"), .before = dep_time)
+  relocate(starts_with(\"arr\"))
 ```")
+
+;; ### Clojure
 
 ;; Apply filtering using functions.
 
 ;; Relocation based on a condition is simple.
 
-^:kindly/hide-code
-(kind/md "```{r}
-flights |>
-  relocate(starts_with(\"arr\"))
-```")
+;; We use `(name column)` because a column contains data and we only want to
+;; filter by the name.
 
 (-> ds
     (tc/reorder-columns (fn [column]
