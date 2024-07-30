@@ -416,16 +416,27 @@ flights |>
 
 ;; ### Python
 
-;; Move to the start any column whose name begins with "arr"
-
-;; FIXME:
+;; Identify columns that start with 'arr'
 
 (kind/md "```{python}
-df = df[col for col in df.columns if col.startswith('arr')]
+arr_columns = [col for col in df.columns if col.startswith('arr')]
+```
 ")
 
-;; We use `(name column)` because a column contains data and we only want to
-;; filter by the name.
+;; Identify other columns
+
+(kind/md "```{python}
+other_columns = [col for col in df.columns if not col.startswith('arr')]
+```
+")
+
+;; Reorder columns: 'arr' columns first, then other columns
+
+(kind/md "```{python}
+df_reorder = df[arr_columns + other_columns]
+df_reorder.head()
+```
+")
 
 ;; # Threading, Piping
 
