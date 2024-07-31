@@ -6,10 +6,13 @@
     max-width: 100%
 }
 
+.clay-dataset {
+    @extend .table-responsive;
+}
+
 .clay-dataset .table {
     @extend .table-striped;
     @extend .table-hover;
-    @extend .table-responsive;
 }
 
 code {font-family: 'Fira Code Italic', monospace;}

@@ -1,12 +1,19 @@
 @import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
 
 /*-- scss:rules --*/
-.table {width:auto}
+.table {
+    width: auto
+}
 
-code {font-family: 'Fira Code Medium', monospace;}
+code {
+    font-family: 'Fira Code Medium', monospace;
+}
+
+.clay-dataset {
+    @extend .table-responsive;
+}
 
 .clay-dataset .table {
     @extend .table-striped;
     @extend .table-hover;
-    @extend .table-responsive;
 }
