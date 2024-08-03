@@ -480,16 +480,14 @@ df_reorder.head()
 ;; Which is correct but it's not as readable as the following
 
 (->> (range 10)
-     (filter even? ,,,)
-     (map #(* % %) ,,,)
-     (reduce + ,,,))
+     (filter even?)
+     (map #(* % %))
+     (reduce +))
 
 (->> (range 10)
      (filter even?)
      (map #(* % %))
      (reduce +))
-
-
 
 ;; In R this form would look like this
 
