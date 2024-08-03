@@ -44,7 +44,6 @@ df = pd.read_csv(\"../resources/data/flights.csv\")
 df.head()
 ```")
 
-
 ;; ## Loading the library in R
 
 ;; I opted to using the existing library for brevity.
@@ -79,9 +78,7 @@ df[df['dest'] == 'IAH']
 (-> ds
     (tc/select-rows (fn [row]
                       (= (:dest row)
-                         "IAH")))
-    (tc/select-rows (range 10))
-    table)
+                         "IAH"))))
 
 ;; ## Summarizing Rows
 
@@ -106,22 +103,22 @@ flights |>
                       (= (:dest row)
                          "IAH")))
     (tc/group-by [:year :month :day])
-    (tc/mean :arr-delay)
-    ;; Extra for prettiness
-    (tc/rename-columns {"summary" :mean-arr-delay}))
+    (tc/mean :arr-delay))
 
 ;; ### Python
-
-;; Group by year, month, day and calculate the mean arrival delay
 
 (kind/md "```{python}
 filtered_flights = df[df['dest'] == 'IAH']
 
-result = filtered_flights.groupby(['year', 'month', 'day']).agg({'arr_delay': lambda x: x.mean(skipna=True)}).reset_index()
+result = filtered_flights \\
+.groupby(['year', 'month', 'day']) \\
+.agg({'arr_delay': lambda x: x.mean(skipna=True)}) \\
+.reset_index()
 
 result
 ```
 ")
+
 
 ;; TODO: Should we show just the head from all 3?
 
@@ -173,6 +170,8 @@ df.drop_duplicates(subset=['origin'])
 ;; ## Counting Rows
 
 ;; Let's count the rows for the origin, destination pairs.
+
+;; Change.
 
 ;; ### R
 
@@ -682,7 +681,11 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
   (tc/dataset "./resources/data/airlines.csv"
               {:key-fn keyword}))
 
-(table (tc/info airlines))
+(-> airlines
+    tc/head)
+
+(-> airlines
+    tc/info)
 
 ;; Next we find the average delay for each airline.
 
