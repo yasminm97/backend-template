@@ -561,7 +561,6 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 
 ;; Around 10 msecs in the transducer case, which is a difference of %17.
 
-
 ;; # Grouping
 
 ;; ## `group-by`
@@ -594,8 +593,6 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 
 ;; Notice that we ignore missing values, similar code in R would break unless
 ;; you use `na.rm = TRUE`
-
-
 
 ;; ## Selecting from a group
 
@@ -652,7 +649,6 @@ sum((seq(2, 8, by = 2) * 3.5)^2)
 ;; `slice_sample`
 
 ;; For selecting any random row.
-
 
 (kind/code
  "(-> ds
