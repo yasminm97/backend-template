@@ -12,7 +12,6 @@
 ;; otherwise return `:error`.
 
 ;; Tip, use the `odd?` function to check if a number is odd.
-
 (defn only-odds [x]
   (if (odd? x)
     (inc x)
@@ -26,7 +25,6 @@
 
 ;; Example run
 ;; (function-name "Ali" 2001 2024) => {:name "Ali", :age 23}
-
 (defn personal-info [name year-of-birth current-year]
   {:name name :age (- current-year year-of-birth)})
 (personal-info "Ali" 2001 2024)
@@ -39,7 +37,6 @@
 ;; (function-name {:name "Ali", :age 23}) => true
 ;; (function-name "Ali" 2001 2024) => true
 ;; (function-name {:name "Abbas", :age 17}) => false
-
 (defn can-vote? [person-info]
   (>= (:age person-info) 18))
 (def person (personal-info "Ali" 2001 2024))
