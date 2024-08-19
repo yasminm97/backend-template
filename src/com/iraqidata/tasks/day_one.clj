@@ -1,5 +1,7 @@
 (ns com.iraqidata.tasks.day-one)
 
+;; Issues
+;; 1. You did not checkout the proper branch.
 
 ;; 1. Write a function that takes one argument as input and prints that
 ;; argument.
@@ -7,6 +9,8 @@
   (print x))
 
 (input-print "Hello Clojure!")
+
+;; Correct, one full point.
 
 ;; 2. Write a function that adds `1` to a number only if the input is odd,
 ;; otherwise return `:error`.
@@ -20,6 +24,8 @@
 (only-odds 3)
 (only-odds 2)
 
+;; Correct, one full point.
+
 ;; 3. Write a function that takes 3 arguments, `name`, `year-of-birth`, and
 ;; `current-year`. and returns a map with the following keys: `name`, `age`.
 
@@ -28,6 +34,8 @@
 (defn personal-info [name year-of-birth current-year]
   {:name name :age (- current-year year-of-birth)})
 (personal-info "Ali" 2001 2024)
+
+;; Correct, one full point.
 
 
 ;; 4. Write a function that takes the output of the above function and returns
@@ -40,7 +48,8 @@
 (defn can-vote? [person-info]
   (>= (:age person-info) 18))
 (def person (personal-info "Ali" 2001 2024))
-(can-vote? person)
+
+;; Correct, one full point.
 
 ;; OPTIONAL FOR BONUS POINTS
 
@@ -55,5 +64,9 @@
 (defn personal-info-2 [name year-of-birth]
   {:name name :age (- (Current-Year) year-of-birth)})
 
-(def person-2 (personal-info-2 "Ali" 2021))
+(def person-2 (personal-info-2 "Ali" 2003))
 (can-vote? person-2)
+
+;; Correct, 3 points.
+
+;; Final score, (+ 1 1 1 1 3) => 7
